@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>transfer-from-computer-to-phone.svg</file>
+    </qresource>
+</RCC>
