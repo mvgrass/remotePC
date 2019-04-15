@@ -17,7 +17,7 @@ public slots:
 
 private:
     QByteArray ipV4ToByteArray(const QHostAddress&);
-    const unsigned int PORT = 23496;
+    const quint32 PORT = 11498;
 };
 
 #endif // NETWORKALLOCATION_H

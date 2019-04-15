@@ -45,7 +45,7 @@ void MainWindow::initializeServices(){
     lanConnectionManager = new LanConnectionManager();
 
     connect(network_thread, SIGNAL(started()), lanConnectionManager, SLOT(start()));
-    connect(network_thread, SIGNAL(terminate()), lanConnectionManager, SLOT(deleteLater()));
+    connect(network_thread, SIGNAL(finished()), lanConnectionManager, SLOT(deleteLater()));
 
     lanConnectionManager->moveToThread(network_thread);
     network_thread->start();
