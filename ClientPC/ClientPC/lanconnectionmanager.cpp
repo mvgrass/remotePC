@@ -1,4 +1,5 @@
 #include "lanconnectionmanager.h"
+#include <QDataStream>
 
 LanConnectionManager::LanConnectionManager(const quint32 port,
                                            const QString& approvedCode,
@@ -35,49 +36,118 @@ void LanConnectionManager::newConnection()
 {
     QTcpSocket* client = this->tcpServer->nextPendingConnection();
 
-    unproovedClients[client->socketDescriptor()] = client;
 
-    if(buffers.find(client->socketDescriptor())==buffers.end()){
-        buffers[client->socketDescriptor()] = new QByteArray();
-        sizes[client->socketDescriptor()] = 0;
+    unproovedClients.insert(client);
+    proovedClients.remove(client);
+
+    if(inBuffers.find(client)==inBuffers.end()){
+        inBuffers[client] = new QByteArray();
+        inSizes[client] = 0;
     }
 
-    buffers[client->socketDescriptor()]->clear();
+    inBuffers[client]->clear();
+
+    /*
+    if(outBuffers.find(client)==outBuffers.end()){
+        outBuffers[client->socketDescriptor()] = new QByteArray();
+        outSizes[client->socketDescriptor()] = 0;
+    }
+
+    outBuffers[client->socketDescriptor()]->clear();
+    */
 
     connect(client, SIGNAL(readyRead()), this, SLOT(readData()));
-    connect(client, SIGNAL(disconnected()), this, SLOT(disconnectUClient()));
+    connect(client, SIGNAL(disconnected()), this, SLOT(disconnectClient()));
 }
 
 void LanConnectionManager::disconnectClient()
 {
     QTcpSocket* disClient= (QTcpSocket*)sender();
-    unproovedClients.remove(disClient->socketDescriptor());
-    proovedClients.remove(disClient->socketDescriptor());
 
-    delete buffers[disClient->socketDescriptor()];
+    unproovedClients.remove(disClient);
+    proovedClients.remove(disClient);
 
-    buffers.remove(disClient->socketDescriptor());
-    sizes.remove(disClient->socketDescriptor());
+    delete inBuffers[disClient];
 
-    emit userDiconnected(disClient->socketDescriptor());
+    inBuffers.remove(disClient);
+    inSizes.remove(disClient);
 
-    delete disClient;
+    emit userDiconnected(disClient);
+
+    disClient->deleteLater();
 }
 
 void LanConnectionManager::readData()
 {
     QTcpSocket* socket = (QTcpSocket*)sender();
 
-    qint32 socketID = socket->socketDescriptor();
 
-    if(unproovedClients.find(socket->socketDescriptor())!=unproovedClients.end()){
+    QDataStream in(socket);
 
-        emit newUser("jshajsh", socketID);
+    if(unproovedClients.find(socket)!=unproovedClients.end()){
+        if(inSizes[socket]==0){
+            if(socket->bytesAvailable()<2)
+                return;
+            else
+                in>>inSizes[socket];
+
+        }
+
+        char temp[inSizes[socket]];
+        int readBytes = in.readRawData(temp, inSizes[socket]);
+
+        inBuffers[socket]->append(temp, readBytes);
+        inSizes[socket]-=readBytes;
+
+        if(inSizes[socket]==0){
+            QByteArray answer;
+            if(QString::fromUtf8(*inBuffers[socket])==approvedCode){
+                unproovedClients.remove(socket);
+                proovedClients.insert(socket);
+                answer.append((char)0);
+                answer.append((char)1);
+                answer.append((char)1);
+
+                emit newUser(socket->peerName(),
+                             socket,
+                             socket->peerAddress().toString());
+
+            }else{
+                answer.append((char)0);
+                answer.append((char)1);
+                answer.append((char)0);
+            }
+
+            socket->write(answer);
+
+            inBuffers[socket]->clear();
+        }
+
     }else{
-        if(sizes[socketID]==0){
-            //sizes[socketID] = socket->read()
+        while(socket->bytesAvailable()>0){
+            if(inSizes[socket]==0){
+                if(socket->bytesAvailable()<2)
+                    return;
+                else
+                    in>>inSizes[socket];
+
+            }
+
+            char temp[inSizes[socket]];
+            int readBytes = in.readRawData(temp, inSizes[socket]);
+
+            inBuffers[socket]->append(temp, readBytes);
+
+            inSizes[socket]-=readBytes;
+
+            if(inSizes[socket]==0){
+                emit newCommand(*inBuffers[socket]);
+
+                inBuffers[socket]->clear();
+            }
         }
     }
+    
 }
 
 

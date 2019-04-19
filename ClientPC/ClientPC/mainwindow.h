@@ -35,8 +35,9 @@ private:
 private slots:
     void quitApp();
     void iconActivated(QSystemTrayIcon::ActivationReason);
-    void newConnection(const QString&);
-    void disconnected(const QString&);
+    void newConnection(const QString&, void*, const QString&);
+    void disconnected(void*);
+    void initializeConnectionTable(const QStringList&);
 };
 
 #endif // MAINWINDOW_H

@@ -15,9 +15,9 @@ public:
     ~LanConnectionManager();
 
 signals:
-    void newUser(const QString&, qint32 socketId);
+    void newUser(const QString&, void*, const QString&);
     void newCommand(QByteArray&);
-    void userDiconnected(qint32 socketId);
+    void userDiconnected(void* socketId);
 
 public slots:
     void start();
@@ -29,10 +29,12 @@ public slots:
 
 private:
     QTcpServer* tcpServer;
-    QHash<int, QTcpSocket*> unproovedClients;
-    QHash<int, QTcpSocket*> proovedClients;
-    QHash<int, QByteArray*> buffers;
-    QHash<int, quint32> sizes;
+    QSet<QTcpSocket*> unproovedClients;
+    QSet<QTcpSocket*> proovedClients;
+    QHash<QTcpSocket*, QByteArray*> inBuffers;
+    QHash<QTcpSocket*, quint16> inSizes;
+    //QHash<QTcpSocket*, QByteArray*> outBuffers;
+    //QHash<QTcpSocket*, quint16> outSizes;
 
     QString approvedCode;
     quint32 PORT;

@@ -24,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
     trayIcon->setContextMenu(trayMenu);
     trayIcon->show();
 
+    initializeConnectionTable(QStringList()<<"Socket ID"<<"Name"<<"IP addres"<<"Disconnect");
+
     initializeServices();
 }
 
@@ -42,13 +44,22 @@ void MainWindow::initializeServices(){
      * Initializeng TCP server for receiving remote commands
      */
     network_thread = new QThread;
-    lanConnectionManager = new LanConnectionManager();
+    lanConnectionManager = new LanConnectionManager(ui->spinBox_2->value(),
+                                                    ui->lineEdit->text());
 
     connect(network_thread, SIGNAL(started()), lanConnectionManager, SLOT(start()));
     connect(network_thread, SIGNAL(finished()), lanConnectionManager, SLOT(deleteLater()));
 
+    connect(lanConnectionManager, SIGNAL(newUser(const QString&, void*, const QString&)),
+            this, SLOT(newConnection(const QString&, void*, const QString&)));
+
+    connect(lanConnectionManager, SIGNAL(userDiconnected(void*)),
+            this, SLOT(disconnected(void*)));
+
     lanConnectionManager->moveToThread(network_thread);
     network_thread->start();
+
+
 
 }
 
@@ -68,14 +79,51 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-void MainWindow::newConnection(const QString &)
+void MainWindow::newConnection(const QString& name, void* socketID, const QString& ip)
 {
+    ui->tableConnectedDevices->insertRow(ui->tableConnectedDevices->rowCount());
+
+    ui->tableConnectedDevices->setItem(ui->tableConnectedDevices->rowCount()-1,
+                                       0, new QTableWidgetItem(QString::number((long long)socketID)));
+    ui->tableConnectedDevices->setItem(ui->tableConnectedDevices->rowCount()-1,
+                                       1, new QTableWidgetItem(name));
+    ui->tableConnectedDevices->setItem(ui->tableConnectedDevices->rowCount()-1,
+                                       2, new QTableWidgetItem(ip));
+
+    QWidget* pWidget = new QWidget();
+    QPushButton* btnDelete = new QPushButton();
+    btnDelete->setText("Delete");
+    QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+    pLayout->addWidget(btnDelete);
+    pLayout->setAlignment(Qt::AlignCenter);
+    pLayout->setContentsMargins(0, 0, 0, 0);
+    pWidget->setLayout(pLayout);
+
+    ui->tableConnectedDevices->setCellWidget(ui->tableConnectedDevices->rowCount()-1,
+                                             3, pWidget);
 
 }
 
-void MainWindow::disconnected(const QString &)
+void MainWindow::disconnected(void* socketID)
 {
+    for(int i = 0;i<ui->tableConnectedDevices->rowCount(); i++)
+        if(ui->tableConnectedDevices->item(i,0)->text().toInt() == (long long)socketID){
+            ui->tableConnectedDevices->removeRow(i);
+            return;
+        }
+}
 
+void MainWindow::initializeConnectionTable(const QStringList & headers)
+{
+    ui->tableConnectedDevices->setColumnCount(headers.size());
+    ui->tableConnectedDevices->setShowGrid(true);
+
+    ui->tableConnectedDevices->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tableConnectedDevices->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    ui->tableConnectedDevices->setHorizontalHeaderLabels(headers);
+    ui->tableConnectedDevices->horizontalHeader()->setStretchLastSection(true);
+    //ui->tableConnectedDevices->hideColumn(0);
 }
 
 MainWindow::~MainWindow()
