@@ -60,6 +60,16 @@ void MainWindow::initializeServices(){
     network_thread->start();
 
 
+    /*
+     * Initializing CommandManager
+     */
+    command_thread = new QThread;
+    commandManager = new CommandManager();
+    connect(lanConnectionManager, SIGNAL(newCommand(const QByteArray&)),
+            commandManager, SLOT(parseCommand(const QByteArray&)));
+
+    commandManager->moveToThread(command_thread);
+    command_thread->start();
 
 }
 
@@ -123,13 +133,19 @@ void MainWindow::initializeConnectionTable(const QStringList & headers)
 
     ui->tableConnectedDevices->setHorizontalHeaderLabels(headers);
     ui->tableConnectedDevices->horizontalHeader()->setStretchLastSection(true);
-    //ui->tableConnectedDevices->hideColumn(0);
+    ui->tableConnectedDevices->hideColumn(0);
 }
 
 MainWindow::~MainWindow()
 {
     network_thread->terminate();
     delete network_thread;
+    delete lanConnectionManager;
+
+    command_thread->terminate();
+    delete command_thread;
+    delete commandManager;
+
     delete ui;
 }
 

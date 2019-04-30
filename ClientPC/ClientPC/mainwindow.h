@@ -7,6 +7,7 @@
 #include <QCloseEvent>
 #include "networkallocation.h"
 #include "lanconnectionmanager.h"
+#include "commandmanager.h"
 
 namespace Ui {
 class MainWindow;
@@ -26,9 +27,14 @@ protected:
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon* trayIcon;
-    QThread* network_thread;
+
     NetWorkAllocation* locationService;
+
+    QThread* network_thread;
     LanConnectionManager* lanConnectionManager;
+
+    QThread* command_thread;
+    CommandManager* commandManager;
 
     void initializeServices();
 

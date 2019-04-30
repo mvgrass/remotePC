@@ -3,7 +3,7 @@ package com.mvgrass.remotepc.Adapters
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
-import com.mvgrass.remotepc.UI.LanConnetionFragment
+import com.mvgrass.remotepc.UI.LanConneсtionFragment
 import com.mvgrass.remotepc.UI.WebConnectionFragment
 
 class ConnectionPagerAdapter: FragmentPagerAdapter{
@@ -15,7 +15,7 @@ class ConnectionPagerAdapter: FragmentPagerAdapter{
     override fun getItem(position: Int): Fragment =
          when (position) {
             0 -> {
-                LanConnetionFragment()
+                LanConneсtionFragment()
             }
             else -> {
                 WebConnectionFragment()

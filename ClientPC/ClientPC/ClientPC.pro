@@ -28,12 +28,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     networkallocation.cpp \
-    lanconnectionmanager.cpp
+    lanconnectionmanager.cpp \
+    virtualmouse.cpp \
+    commandmanager.cpp
 
 HEADERS += \
         mainwindow.h \
     networkallocation.h \
-    lanconnectionmanager.h
+    lanconnectionmanager.h \
+    virtualmouse.h \
+    commandmanager.h
 
 FORMS += \
         mainwindow.ui

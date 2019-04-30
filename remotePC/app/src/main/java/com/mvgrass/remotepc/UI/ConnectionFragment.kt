@@ -23,8 +23,6 @@ class ConnectionFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
         val viewPager = view.findViewById<ViewPager>(R.id.viewPager_connection)
         viewPager.adapter = ConnectionPagerAdapter(childFragmentManager)
 

@@ -12,7 +12,7 @@ import android.widget.Toast
 
 import com.mvgrass.remotepc.R
 
-class LanConnetionFragment : Fragment() {
+class LanConneсtionFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

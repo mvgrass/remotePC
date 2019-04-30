@@ -16,7 +16,7 @@ public:
 
 signals:
     void newUser(const QString&, void*, const QString&);
-    void newCommand(QByteArray&);
+    void newCommand(const QByteArray&);
     void userDiconnected(void* socketId);
 
 public slots:
@@ -33,8 +33,6 @@ private:
     QSet<QTcpSocket*> proovedClients;
     QHash<QTcpSocket*, QByteArray*> inBuffers;
     QHash<QTcpSocket*, quint16> inSizes;
-    //QHash<QTcpSocket*, QByteArray*> outBuffers;
-    //QHash<QTcpSocket*, quint16> outSizes;
 
     QString approvedCode;
     quint32 PORT;
