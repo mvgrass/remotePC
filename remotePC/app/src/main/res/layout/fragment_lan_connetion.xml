@@ -3,12 +3,9 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".UI.LanConnetionFragment">
-
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+             tools:context=".UI.LanConnectionFragment">
+    <ListView
+            android:id="@+id/ConnectionList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="LanConnection"/>
-
+            android:layout_height="match_parent"/>
 </FrameLayout>
