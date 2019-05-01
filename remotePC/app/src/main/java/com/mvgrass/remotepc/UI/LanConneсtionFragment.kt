@@ -14,7 +14,7 @@ import com.mvgrass.remotepc.Adapters.TCPConnection
 import com.mvgrass.remotepc.Adapters.UDPConnection
 import java.net.Inet4Address
 
-class LanConnetionFragment : Fragment(){
+class LanConnectionFragment : Fragment(){
 
     private lateinit var list: ListView
     var connectionList: MutableList<Pair<String, Inet4Address>> = ArrayList()
