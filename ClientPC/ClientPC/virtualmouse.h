@@ -11,6 +11,7 @@ public:
 
     void absoluteMove(qint32 x, qint32 y);
     void move(qint32 dx, qint32 dy);
+    void drag(qint32 dx, qint32 dy);
     void rightClick();
     void rightButtonDown();
     void rightButtonUp();

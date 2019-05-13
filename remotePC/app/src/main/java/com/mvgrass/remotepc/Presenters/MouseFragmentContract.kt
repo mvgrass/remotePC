@@ -10,13 +10,19 @@ interface MouseFragmentContract{
 
         fun onLeftButtonReleased()
 
+        fun onLeftButtonClicked()
+
+        fun onLeftButtonDoubleClicked()
+
         fun onRightButtonPressed()
 
         fun onRightButtonReleased()
 
+        fun onRightButtonClicked()
+
         fun onScrolled(value: Int)
 
-        fun onMouseMoved(dx: Int, dy: Int)
+        fun onMouseMoved(dx: Float, dy: Float)
 
         fun onSenseChanged(value: Int)
     }

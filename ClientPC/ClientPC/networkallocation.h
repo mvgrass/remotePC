@@ -16,7 +16,6 @@ public slots:
     void run();
 
 private:
-    QByteArray ipV4ToByteArray(const QHostAddress&);
     const quint32 PORT = 11498;
 };
 

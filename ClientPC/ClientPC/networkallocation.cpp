@@ -22,8 +22,8 @@ void NetWorkAllocation::run(){
 
                 QUdpSocket* socket = new QUdpSocket();
 
-                QByteArray hostINFO = ipV4ToByteArray(entry.ip());
-                hostINFO.append("\n"+QHostInfo::localHostName());
+                QByteArray hostINFO;
+                hostINFO.append(QHostInfo::localHostName().toUtf8());
 
                 socket->writeDatagram(hostINFO, entry.broadcast(), PORT);
 
@@ -32,17 +32,3 @@ void NetWorkAllocation::run(){
         }
     }
 }
-
-QByteArray NetWorkAllocation::ipV4ToByteArray(const QHostAddress & ip)
-{
-    QByteArray array;
-    quint32 ipInt = ip.toIPv4Address();
-
-    array.append((ipInt>>24)&255);
-    array.append((ipInt>>16)&255);
-    array.append((ipInt>>8)&255);
-    array.append(ipInt&255);
-
-    return array;
-}
-

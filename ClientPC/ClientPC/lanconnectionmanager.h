@@ -16,7 +16,7 @@ public:
 
 signals:
     void newUser(const QString&, void*, const QString&);
-    void newCommand(const QByteArray&);
+    void newCommand(const QByteArray);
     void userDiconnected(void* socketId);
 
 public slots:

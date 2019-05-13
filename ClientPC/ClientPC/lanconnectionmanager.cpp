@@ -104,8 +104,6 @@ void LanConnectionManager::readData()
             if(QString::fromUtf8(*inBuffers[socket])==approvedCode){
                 unproovedClients.remove(socket);
                 proovedClients.insert(socket);
-                answer.append((char)0);
-                answer.append((char)1);
                 answer.append((char)1);
 
                 emit newUser(socket->peerName(),
@@ -113,8 +111,6 @@ void LanConnectionManager::readData()
                              socket->peerAddress().toString());
 
             }else{
-                answer.append((char)0);
-                answer.append((char)1);
                 answer.append((char)0);
             }
 
@@ -128,12 +124,14 @@ void LanConnectionManager::readData()
             if(inSizes[socket]==0){
                 if(socket->bytesAvailable()<2)
                     return;
-                else
+                else{
                     in>>inSizes[socket];
+                }
 
             }
 
             char temp[inSizes[socket]];
+
             int readBytes = in.readRawData(temp, inSizes[socket]);
 
             inBuffers[socket]->append(temp, readBytes);

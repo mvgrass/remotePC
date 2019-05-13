@@ -65,8 +65,8 @@ void MainWindow::initializeServices(){
      */
     command_thread = new QThread;
     commandManager = new CommandManager();
-    connect(lanConnectionManager, SIGNAL(newCommand(const QByteArray&)),
-            commandManager, SLOT(parseCommand(const QByteArray&)));
+    connect(lanConnectionManager, SIGNAL(newCommand(const QByteArray)),
+            commandManager, SLOT(parseCommand(const QByteArray)));
 
     commandManager->moveToThread(command_thread);
     command_thread->start();

@@ -1,5 +1,6 @@
 #include "virtualmouse.h"
 #include "windows.h"
+#include <QDebug>
 
 VirtualMouse::VirtualMouse(QObject *parent) : QObject(parent)
 {
@@ -10,6 +11,7 @@ void VirtualMouse::absoluteMove(qint32 x, qint32 y)
 {
     MOUSEINPUT mINPUT;
 
+    ZeroMemory(&mINPUT, sizeof (mINPUT));
     mINPUT.dx = x;
     mINPUT.dy = y;
 
@@ -29,6 +31,7 @@ void VirtualMouse::move(qint32 dx, qint32 dy)
 {
     MOUSEINPUT mINPUT;
 
+    ZeroMemory(&mINPUT, sizeof (mINPUT));
     mINPUT.dx = dx;
     mINPUT.dy = dy;
 
@@ -43,16 +46,19 @@ void VirtualMouse::move(qint32 dx, qint32 dy)
     SendInput(1, &input, sizeof (INPUT));
 }
 
+
+
 void VirtualMouse::rightClick()
 {
     rightButtonDown();
     rightButtonUp();
-
 }
 
 void VirtualMouse::rightButtonDown()
 {
     MOUSEINPUT mINPUT;
+
+    ZeroMemory(&mINPUT, sizeof (mINPUT));
 
     mINPUT.dwFlags = MOUSEEVENTF_RIGHTDOWN;
 
@@ -68,6 +74,7 @@ void VirtualMouse::rightButtonDown()
 void VirtualMouse::rightButtonUp()
 {
     MOUSEINPUT mINPUT;
+    ZeroMemory(&mINPUT, sizeof (mINPUT));
 
     mINPUT.dwFlags = MOUSEEVENTF_RIGHTUP;
 
@@ -78,6 +85,7 @@ void VirtualMouse::rightButtonUp()
     input.mi = mINPUT;
 
     SendInput(1, &input, sizeof (INPUT));
+
 }
 
 void VirtualMouse::leftClick()
@@ -89,6 +97,7 @@ void VirtualMouse::leftClick()
 void VirtualMouse::leftButtonDown()
 {
     MOUSEINPUT mINPUT;
+    ZeroMemory(&mINPUT, sizeof (mINPUT));
 
     mINPUT.dwFlags = MOUSEEVENTF_LEFTDOWN;
 
@@ -99,11 +108,13 @@ void VirtualMouse::leftButtonDown()
     input.mi = mINPUT;
 
     SendInput(1, &input, sizeof (INPUT));
+
 }
 
 void VirtualMouse::leftButtonUp()
 {
     MOUSEINPUT mINPUT;
+    ZeroMemory(&mINPUT, sizeof (mINPUT));
 
     mINPUT.dwFlags = MOUSEEVENTF_LEFTUP;
 
@@ -114,19 +125,23 @@ void VirtualMouse::leftButtonUp()
     input.mi = mINPUT;
 
     SendInput(1, &input, sizeof (INPUT));
+
 }
 
 void VirtualMouse::verticalScroll(qint32 dy)
 {
+
     MOUSEINPUT mINPUT;
+    ZeroMemory(&mINPUT, sizeof (mINPUT));
 
     mINPUT.dwFlags = MOUSEEVENTF_WHEEL;
 
-    mINPUT.mouseData = WHEEL_DELTA;
+    mINPUT.mouseData = -dy*WHEEL_DELTA;
 
     INPUT input;
     input.type = 0;
     input.mi = mINPUT;
 
     SendInput(1, &input, sizeof (INPUT));
+
 }

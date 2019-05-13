@@ -13,7 +13,7 @@ public:
 signals:
 
 public slots:
-    void parseCommand(const QByteArray&);
+    void parseCommand(const QByteArray);
 
 private:
     VirtualMouse* mouse;

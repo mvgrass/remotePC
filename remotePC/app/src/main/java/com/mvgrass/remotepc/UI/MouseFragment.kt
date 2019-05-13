@@ -1,32 +1,27 @@
 package com.mvgrass.remotepc.UI
 
-import android.app.Activity
-import android.app.AlertDialog
-import android.app.Dialog
-import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.SeekBar
-import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import com.mvgrass.remotepc.Presenters.MouseFragmentContract
 import com.mvgrass.remotepc.Presenters.MouseFragmentPresenter
 
 import com.mvgrass.remotepc.R
-import java.lang.Exception
-import java.net.Socket
+import kotlin.math.abs
+import kotlin.math.floor
 
-class MouseFragment : Fragment(), CodeFragment.CodeFragmentListener, MouseFragmentContract.View {
+class MouseFragment : Fragment(), MouseFragmentContract.View {
 
     private lateinit var presenter: MouseFragmentContract.Presenter
     private lateinit var senseBar: SeekBar
 
+    private lateinit var leftButton: Button
+    private lateinit var rightButton: Button
+    private lateinit var touchpadView: View
+
+    private lateinit var mDetector: GestureDetector
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,25 +34,15 @@ class MouseFragment : Fragment(), CodeFragment.CodeFragmentListener, MouseFragme
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val leftButton = view.findViewById<Button>(R.id.mouse_left_button)
-        val rightButton = view.findViewById<Button>(R.id.mouse_right_button)
-        val touchpadView = view.findViewById<View>(R.id.touch_pad_view)
+        leftButton = view.findViewById<Button>(R.id.mouse_left_button)
+        rightButton = view.findViewById<Button>(R.id.mouse_right_button)
+        touchpadView = view.findViewById<View>(R.id.touch_pad_view)
         senseBar = view.findViewById(R.id.senseSeekBar)
 
         presenter = MouseFragmentPresenter()
 
 
-
-        //DELETE AFTER TCP CONNECTOR CREATED
-        val connect = view.findViewById<Button>(R.id.ConnectButton)
-        connect.setOnClickListener{v->
-            val dialog = CodeFragment()
-            dialog.setTargetFragment(this, 1)
-            dialog.show(fragmentManager, "CodeFragment")
-
-        }
-        //DELETE AFTER TCP CONNECTOR CREATED
-
+        initializeGestureListeners()
 
     }
 
@@ -65,71 +50,155 @@ class MouseFragment : Fragment(), CodeFragment.CodeFragmentListener, MouseFragme
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    class TouchPadGestureListener{
+    private fun initializeGestureListeners(){
+        leftButton.setOnTouchListener { v, event ->
+            val action = event.actionMasked
 
+            when(action) {
+                MotionEvent.ACTION_DOWN -> {
+                    presenter.onLeftButtonPressed()
+                    leftButton.isPressed = true
+                    true
+                }
+                MotionEvent.ACTION_UP->{
+                    presenter.onLeftButtonReleased()
+                    leftButton.isPressed = false
+                    true
+                }
+                else ->
+                    false
+            }
+        }
+
+        rightButton.setOnTouchListener { v, event ->
+            val action = event.actionMasked
+
+            when(action) {
+                MotionEvent.ACTION_DOWN -> {
+                    presenter.onRightButtonPressed()
+                    rightButton.isPressed = true
+                    true
+                }
+                MotionEvent.ACTION_UP->{
+                    presenter.onRightButtonReleased()
+                    rightButton.isPressed = false
+                    true
+                }
+                else ->
+                    false
+            }
+        }
+
+        val listener = TouchPadGestureListener(presenter)
+        mDetector = GestureDetector(activity, listener)
+        mDetector.setIsLongpressEnabled(false)
+
+        touchpadView.setOnTouchListener{ _, event->
+            if(event.actionMasked == MotionEvent.ACTION_UP)
+                listener.onUp()
+            mDetector.onTouchEvent(event)
+        }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    //Delete after created stable tcp connection
-    private lateinit var socket: Socket
-    override fun onAccepted(str: String?) {
+    class TouchPadGestureListener(presenter: MouseFragmentContract.Presenter): GestureDetector.SimpleOnGestureListener(){
 
-        Thread(Runnable {
+        private val mPresenter = presenter
 
-            try {
-                socket = Socket("192.168.0.102", 49152)
-            }catch (exc: Exception){
-                exc.printStackTrace()
+        private var downTimeMark:Long = 0
+        private var firstScrollTimeMark:Long = -1
+
+        private val SCROLL_MIN_DISTANCE = 50;
+
+        private var firstMovingDown = false
+        private var firstMovingUp = false
+        private var secondMovingDown = false
+        private var secondMovingUp = false
+        private var doubleScrolled = 0f
+
+
+        override fun onDown(e: MotionEvent?): Boolean {
+            downTimeMark = System.currentTimeMillis()
+            firstScrollTimeMark = -1
+            return true
+        }
+
+        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+            if(e2?.pointerCount == 1) {
+                if(firstScrollTimeMark == -1L) {
+                    firstScrollTimeMark = System.currentTimeMillis()
+                    if(firstScrollTimeMark - downTimeMark>300)
+                        mPresenter.onLeftButtonPressed()
+                }
+
+                mPresenter.onMouseMoved(distanceX, distanceY)
+
+            }else if(e2?.pointerCount == 2){
+                val index = e2.actionIndex
+
+                downTimeMark = System.currentTimeMillis()
+
+                if (index == 0) {
+                    if (distanceX == 0.0f) {
+                        if (distanceY > 0) {
+                            firstMovingUp = true
+                            firstMovingDown = false
+                        } else {
+                            firstMovingUp = false
+                            firstMovingDown = true
+                        }
+                    } else if (Math.tan((distanceY / distanceX).toDouble()) > ((Math.PI / 2) - 0.1)
+                        && Math.tan((distanceY / distanceX).toDouble()) < ((Math.PI / 2) + 0.1)
+                    ) {
+
+                        firstMovingUp = true
+                        firstMovingDown = false
+                    } else if (Math.tan((distanceY / distanceX).toDouble()) > ((-Math.PI / 2) - 0.1)
+                        && Math.tan((distanceY / distanceX).toDouble()) < ((-Math.PI / 2) + 0.1)
+                    ) {
+
+                        firstMovingUp = false
+                        firstMovingDown = true
+                    } else {
+                        firstMovingUp = false
+                        firstMovingDown = false
+                    }
+                }
+
+                if(distanceY*doubleScrolled<0)
+                    doubleScrolled = 0f
+
+                doubleScrolled+=distanceY
+
+                if ((firstMovingDown || firstMovingUp)&&abs(doubleScrolled)>=SCROLL_MIN_DISTANCE){
+                    mPresenter.onScrolled((floor(abs(doubleScrolled)/SCROLL_MIN_DISTANCE)*abs(doubleScrolled)/doubleScrolled).toInt())
+                    doubleScrolled = 0f
+                }
             }
 
+            return true
+        }
 
-            val size = ByteArray(2)
-            val arr = str?.toByteArray(Charsets.UTF_8)
+        fun onUp(){
+            if(firstScrollTimeMark!=-1L && (firstScrollTimeMark - downTimeMark>300)) {
+                mPresenter.onLeftButtonReleased()
+            }
 
-            size[0] =  (((arr?.size) ?: 0) shr 8 and 0xFF).toByte()
-            size[1] = (((arr?.size) ?: 0) and 0xFF).toByte()
+            firstMovingUp = false
+            firstMovingDown = false
+            secondMovingUp = false
+            secondMovingDown = false
+            doubleScrolled = 0f
+        }
 
-            socket.getOutputStream().write(size)
-            socket.getOutputStream().write(arr)
-        }).start()
+        override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+            mPresenter.onLeftButtonClicked()
+            return true
+        }
+
+        override fun onDoubleTap(e: MotionEvent?): Boolean {
+            mPresenter.onLeftButtonDoubleClicked()
+            return true
+        }
 
     }
-
-    override fun onDecline() {
-        Toast.makeText(activity, "Canceled", Toast.LENGTH_SHORT).show()
-    }
-}
-
-class CodeFragment:DialogFragment(){
-
-
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-
-        mListener = targetFragment as CodeFragmentListener
-        mEditText = EditText(context)
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-
-        val builder = AlertDialog.Builder(activity)
-
-        builder.setTitle("Enter validation code")
-            .setPositiveButton("OK") {_, _ ->
-                mListener.onAccepted(mEditText.text.toString())}
-            .setNegativeButton("Cancel") {_, _ ->
-                mListener.onDecline()}
-            .setView(mEditText)
-
-        return builder.create()
-    }
-
-    interface CodeFragmentListener{
-        fun onAccepted(str: String?)
-
-        fun onDecline()
-    }
-
-    lateinit var mListener: CodeFragmentListener
-    lateinit var mEditText: EditText
 }

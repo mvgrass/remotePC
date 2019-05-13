@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-            android:id="@+id/navigation_desktop"
-            android:icon="@drawable/ic_desktop_windows_black_24dp"
-            android:title="@string/title_screen"/>
+            android:id="@+id/navigation_keyboard"
+            android:icon="@drawable/ic_keyboard_black_24dp"
+            android:title="@string/title_keyboard"/>
 
     <item
             android:id="@+id/navigation_mouse"
@@ -12,9 +12,9 @@
             android:title="@string/title_mouse"/>
 
     <item
-            android:id="@+id/navigation_keyboard"
-            android:icon="@drawable/ic_keyboard_black_24dp"
-            android:title="@string/title_keyboard"/>
+            android:id="@+id/navigation_desktop"
+            android:icon="@drawable/ic_desktop_windows_black_24dp"
+            android:title="@string/title_screen"/>
 
     <item
             android:id="@+id/navigation_files"
